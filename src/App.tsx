@@ -1,17 +1,17 @@
-import { AlertCircle, Plane } from 'lucide-react';
-import { useState } from 'react';
-import { BoardingPass } from './components/BoardingPass';
-import { SearchForm } from './components/SearchForm';
-import { ThemeSelector } from './components/ThemeSelector';
-import type { BoardingPassData, GitHubUser, Repository, Theme } from './types';
-
-
+import { AlertCircle, Plane } from "lucide-react";
+import { useState } from "react";
+import { BoardingPass } from "./components/BoardingPass";
+import { SearchForm } from "./components/SearchForm";
+import { ThemeSelector } from "./components/ThemeSelector";
+import type { BoardingPassData, GitHubUser, Repository, Theme } from "./types";
 
 export default function App() {
-  const [boardingPass, setBoardingPass] = useState<BoardingPassData | null>(null);
+  const [boardingPass, setBoardingPass] = useState<BoardingPassData | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<Theme>('blue');
+  const [theme, setTheme] = useState<Theme>("sapphire");
 
   const fetchGitHubData = async (username: string) => {
     setLoading(true);
@@ -20,24 +20,27 @@ export default function App() {
     try {
       const [userResponse, reposResponse] = await Promise.all([
         fetch(`https://api.github.com/users/${username}`),
-        fetch(`https://api.github.com/users/${username}/repos`)
+        fetch(`https://api.github.com/users/${username}/repos`),
       ]);
 
       if (!userResponse.ok || !reposResponse.ok) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
 
       const userData: GitHubUser = await userResponse.json();
       const repos: Repository[] = await reposResponse.json();
 
-      // Calculate main language
-      const languages = repos.map(repo => repo.language).filter(Boolean);
-      const mainLanguage = languages.length > 0
-        ? languages.reduce((acc, curr) =>
-            languages.filter(lang => lang === acc).length >= languages.filter(lang => lang === curr).length
-              ? acc : curr
-          )
-        : 'Unknown';
+      // Calculate main language - with safety check
+      const languages = repos.map((repo) => repo.language).filter(Boolean);
+      const mainLanguage =
+        languages.length > 0
+          ? languages.reduce((acc, curr) =>
+              languages.filter((lang) => lang === acc).length >=
+              languages.filter((lang) => lang === curr).length
+                ? acc
+                : curr
+            )
+          : "Unknown";
 
       // Calculate total size and stats
       const totalSize = repos.reduce((acc, repo) => acc + repo.size, 0);
@@ -45,9 +48,12 @@ export default function App() {
       const forks = repos.reduce((acc, repo) => acc + repo.forks_count, 0);
 
       // Find top repository (by stars)
-      const topRepo = repos.reduce((acc, curr) =>
-        (curr.stargazers_count > acc.stargazers_count) ? curr : acc
-      );
+      const topRepo =
+        repos.length > 0
+          ? repos.reduce((acc, curr) =>
+              curr.stargazers_count > acc.stargazers_count ? curr : acc
+            )
+          : { name: "No public repositories", stargazers_count: 0 };
 
       setBoardingPass({
         username: userData.login,
@@ -63,14 +69,16 @@ export default function App() {
         gists: userData.public_gists,
         stars,
         forks,
-        company: userData.company || '',
-        location: userData.location || '',
-        twitter_username: userData.twitter_username || '',
+        company: userData.company || "",
+        location: userData.location || "",
+        twitter_username: userData.twitter_username || "",
         public_repos: userData.public_repos,
-        total_repos: userData.public_repos
+        total_repos: userData.public_repos,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch GitHub data');
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch GitHub data"
+      );
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,6 @@ export default function App() {
           </div>
           <p className="text-gray-600 max-w-md mx-auto">
             Generate your GitHub boarding pass by entering your username below.
-            Ready for takeoff into the world of code?
           </p>
         </div>
 
@@ -113,12 +120,7 @@ export default function App() {
             <div className="flex justify-center">
               <BoardingPass data={boardingPass} theme={theme} />
             </div>
-            <div className="text-center text-xs text-gray-500 space-x-8">
-              <span>ROOKIE: 0-2 years experience</span>
-              <span>GOLD: 2-5 years experience</span>
-              <span>PLATINUM: 5-8 years experience</span>
-              <span>DIAMOND: 8+ years experience</span>
-            </div>
+
           </>
         )}
       </div>

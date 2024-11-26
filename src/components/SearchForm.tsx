@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search } from "lucide-react";
+import React, { useState } from "react";
 
 interface SearchFormProps {
   onSearch: (username: string) => void;
   isLoading: boolean;
 }
 
-export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
-  const [username, setUsername] = useState('');
+export function SearchForm({ onSearch, isLoading }: Readonly<SearchFormProps>) {
+  const queryParams = new URLSearchParams(window.location.search);
+  const existingUsername = queryParams.get("username");
+  const [username, setUsername] = useState(existingUsername ?? '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

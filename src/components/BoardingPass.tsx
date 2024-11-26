@@ -1,69 +1,37 @@
-import {
-  Building,
-  GitFork,
-  Github,
-  MapPin,
-  Plane,
-  Star,
-  Twitter,
-  Users,
-} from "lucide-react";
+import { Building, GitFork, MapPin, Plane, Star, Users } from "lucide-react";
 import QRCode from "react-qr-code";
-import type { BoardingPassData, Theme } from "../types";
+import { themeConfig, type BoardingPassData, type Theme } from "../types";
+import { getMemberStatus, getMemberStatusColor } from "../utils";
 import { MovingBanner } from "./MovingBanner";
+import ShareButton from "./ShareButton";
 
 interface BoardingPassProps {
   data: BoardingPassData;
   theme: Theme;
 }
 
-const themeGradients: Record<Theme, { from: string; via: string; to: string }> =
-  {
-    blue: { from: "from-blue-600", via: "via-blue-700", to: "to-blue-800" },
-    purple: {
-      from: "from-purple-600",
-      via: "via-purple-700",
-      to: "to-purple-800",
-    },
-    green: {
-      from: "from-emerald-600",
-      via: "via-emerald-700",
-      to: "to-emerald-800",
-    },
-    orange: {
-      from: "from-orange-600",
-      via: "via-orange-700",
-      to: "to-orange-800",
-    },
-    red: { from: "from-red-600", via: "via-red-700", to: "to-red-800" },
-    pink: { from: "from-pink-600", via: "via-pink-700", to: "to-pink-800" },
-    teal: { from: "from-teal-600", via: "via-teal-700", to: "to-teal-800" },
-  };
-
-export function BoardingPass({ data, theme }: BoardingPassProps) {
+export function BoardingPass({ data, theme }: Readonly<BoardingPassProps>) {
   const experience =
     new Date().getFullYear() - new Date(data.joinDate).getFullYear();
-  const memberStatus =
-    experience < 2
-      ? "ROOKIE"
-      : experience < 5
-      ? "GOLD"
-      : experience < 8
-      ? "PLATINUM"
-      : "DIAMOND";
+  const baseUrl = window.location.origin;
+  const shareUrl = `${baseUrl}?username=${data.username}`;
+  const memberStatus = getMemberStatus(experience);
+  const shareText = `🚀 Check out my GitHub Airline Pass! They've been coding for ${experience} years and apparently am a ${memberStatus} member of the GitHub community. 👨‍💻`;
 
-  const flightNumber = `GA${data.totalRepos}${data.followers}`;
+  const flightNumber = `${data.mainLanguage.slice(0, 2).toUpperCase()}${
+    data.totalRepos
+  }${data.followers}`;
   const terminal = String.fromCharCode(65 + (data.stars % 8));
   const gate = (Math.floor((data.followers + data.stars) / 10) % 50) + 1;
-  const gradient = themeGradients[theme];
+  const config = themeConfig[theme];
+  const { from, via, to } = config.colors.primary;
 
   return (
     <div className="w-full max-w-5xl bg-white rounded-lg shadow-2xl overflow-hidden">
       <MovingBanner theme={theme} />
 
-      {/* Ticket Header */}
       <div
-        className={`bg-gradient-to-r ${gradient.from} ${gradient.via} ${gradient.to} p-4 sm:p-6 text-white relative`}
+        className={`bg-gradient-to-r ${from} ${via} ${to} p-4 sm:p-6 text-white relative`}
       >
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
           <div className="flex flex-col sm:flex-row items-center sm:space-x-4 text-center sm:text-left">
@@ -76,7 +44,7 @@ export function BoardingPass({ data, theme }: BoardingPassProps) {
                 />
               </div>
               <div
-                className={`absolute -bottom-1 -right-1 bg-${theme}-500 rounded-full p-1`}
+                className={`absolute -bottom-1 -right-1 ${config.colors.iconBackground} rounded-full p-1`}
               >
                 <Plane className="w-4 h-4 text-white" />
               </div>
@@ -88,15 +56,9 @@ export function BoardingPass({ data, theme }: BoardingPassProps) {
               <div className="flex items-center justify-center sm:justify-start space-x-2 mt-1">
                 <div className="flex items-center space-x-2">
                   <div
-                    className={`w-2 h-2 rounded-full ${
-                      memberStatus === "ROOKIE"
-                        ? "bg-green-500"
-                        : memberStatus === "GOLD"
-                        ? "bg-yellow-500"
-                        : memberStatus === "PLATINUM"
-                        ? "bg-gray-300"
-                        : "bg-blue-300"
-                    }`}
+                    className={`w-2 h-2 rounded-full ${getMemberStatusColor(
+                      memberStatus
+                    )}`}
                   />
                   <p className="text-white/90 text-sm">{memberStatus} MEMBER</p>
                 </div>
@@ -105,11 +67,11 @@ export function BoardingPass({ data, theme }: BoardingPassProps) {
               </div>
             </div>
           </div>
-          <div className="text-center sm:text-right">
+          <div className="text-center sm:text-right ">
             <QRCode
               value={data.profileUrl}
               size={64}
-              className="mb-2 bg-white p-1 rounded"
+              className="mb-2 bg-white p-1 rounded m-auto lg:ml-auto"
             />
             <p className="text-xs text-white/90">SCAN TO VIEW PROFILE</p>
           </div>
@@ -139,7 +101,16 @@ export function BoardingPass({ data, theme }: BoardingPassProps) {
             </div>
             {data.twitter_username && (
               <div className="flex items-center space-x-2 mt-1">
-                <Twitter className="w-4 h-4 text-blue-400" />
+                <svg
+                  height={16}
+                  width={16}
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <title>X</title>
+                  <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+                </svg>
                 <a
                   href={`https://twitter.com/${data.twitter_username}`}
                   target="_blank"
@@ -207,11 +178,11 @@ export function BoardingPass({ data, theme }: BoardingPassProps) {
         {/* Repository Showcase */}
         <div className="border-t border-dashed pt-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-            <div>
+            <div className="flex flex-col h-full">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
                 Featured Repository
               </p>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 h-full">
                 <h3 className="font-mono text-lg mb-2 truncate">
                   {data.topRepo}
                 </h3>
@@ -227,11 +198,11 @@ export function BoardingPass({ data, theme }: BoardingPassProps) {
                 </div>
               </div>
             </div>
-            <div>
+            <div className="flex flex-col h-full">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
                 Developer Journey
               </p>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 h-full">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-gray-500">Experience</p>
@@ -252,19 +223,25 @@ export function BoardingPass({ data, theme }: BoardingPassProps) {
       <div className="bg-gray-50 p-4 border-t border-dashed">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 text-sm text-gray-600">
           <p className="font-mono">
-            ISSUED: {new Date(data.joinDate).toLocaleDateString()}
-          </p>
-          <p className="font-mono">
             PASSENGER ID: GH-{data.username.toUpperCase()}
           </p>
+          <ShareButton shareUrl={shareUrl} shareText={shareText} />
           <a
             href={data.profileUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center space-x-1 text-blue-600 hover:text-blue-700"
           >
-            <Github className="w-4 h-4" />
-            <span>View Profile</span>
+            <svg
+              aria-hidden="true"
+              height={18}
+              width={18}
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <title>GitHub</title>
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+            </svg>
           </a>
         </div>
       </div>
