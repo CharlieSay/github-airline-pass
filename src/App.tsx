@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import { AlertCircle, Plane } from "lucide-react";
 import { useState } from "react";
 import { BoardingPass } from "./components/BoardingPass";
@@ -120,10 +121,10 @@ export default function App() {
             <div className="flex justify-center">
               <BoardingPass data={boardingPass} theme={theme} />
             </div>
-
           </>
         )}
       </div>
+      <Analytics />
     </div>
   );
 }
