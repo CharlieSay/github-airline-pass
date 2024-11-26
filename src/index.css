@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased text-gray-900 bg-gray-100;
+  }
+}
+
+@layer utilities {
+  @keyframes marquee {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+    display: inline-block;
+  }
+}
+
+@font-face {
+  font-family: 'Digital';
+  src: url('https://fonts.gstatic.com/s/share/v14/i7dJIFliZjKNF63xM56-WkJUQUq7.woff2') format('woff2');
+}
